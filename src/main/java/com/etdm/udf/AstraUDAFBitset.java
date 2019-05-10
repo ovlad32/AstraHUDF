@@ -1,14 +1,14 @@
 package com.etdm.udf;
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import vendor.google.common.hash.HashFunction;
+import vendor.google.common.hash.Hashing;
 import com.zaxxer.sparsebits.SparseBitSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.common.io.NonSyncByteArrayInputStream;
-import org.apache.hadoop.hive.common.type.Date;
+//import org.apache.hadoop.hive.common.type.Date;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
-import org.apache.hadoop.hive.common.type.Timestamp;
+//import org.apache.hadoop.hive.common.type.Timestamp;
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
 import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
@@ -41,6 +41,7 @@ public class AstraUDAFBitset implements GenericUDAFResolver2 {
     private static final HashFunction hashFunction = Hashing.murmur3_32();
 
     private static int hash(String string) {
+        //return (hashFunction.hashUnencodedChars(string).asInt() & Integer.MAX_VALUE) % Integer.MAX_VALUE;
         return (hashFunction.hashUnencodedChars(string).asInt() & Integer.MAX_VALUE) % Integer.MAX_VALUE;
     }
 
@@ -50,15 +51,15 @@ public class AstraUDAFBitset implements GenericUDAFResolver2 {
 
     public GenericUDAFEvaluator getEvaluator(GenericUDAFParameterInfo paramInfo) throws SemanticException {
         ObjectInspector[] ois = paramInfo.getParameterObjectInspectors();
-        if (ois.length < 2) {
+       /* if (ois.length < 2) {
             throw new UDFArgumentException("2 arguments expected");
-        }
+        }*/
         if (paramInfo.isDistinct()) {
             throw new UDFArgumentException("Distinct keyword is not applicable");
         }
-        if (paramInfo.isWindowing()) {
+        /*if (paramInfo.isWindowing()) {
             throw new UDFArgumentException("Not a windowing function!");
-        }
+        }*/
         if (!ois[0].getCategory().equals(ObjectInspector.Category.PRIMITIVE)) {
             throw new UDFArgumentException("The first parameter must be primitive!");
         }
@@ -83,7 +84,7 @@ public class AstraUDAFBitset implements GenericUDAFResolver2 {
         @Override
         public ObjectInspector init(Mode mode, ObjectInspector[] parameters) throws HiveException {
             super.init(mode, parameters);
-            if (mode == Mode.PARTIAL2 || mode == Mode.COMPLETE ) {
+            if (mode == Mode.PARTIAL1 || mode == Mode.COMPLETE ) {
                 this.inputOI = (PrimitiveObjectInspector)parameters[0];
             }
             return PrimitiveObjectInspectorFactory.writableBinaryObjectInspector;
@@ -135,10 +136,10 @@ public class AstraUDAFBitset implements GenericUDAFResolver2 {
                     case DECIMAL:
                         HiveDecimal vDecimal = ((HiveDecimalObjectInspector)this.inputOI).getPrimitiveJavaObject(parameters[0]);
                         if (vDecimal != null) {
-                            value = vDecimal.toDigitsOnlyString();
+                            value = vDecimal.toString();
                         }
                         break;
-                    case DATE:
+                   /* case DATE:
                         Date v = ((DateObjectInspector)this.inputOI).getPrimitiveJavaObject(parameters[0]);
                         if (v != null) {
                             value = v.toString(); // pattern "yyyy-MM-dd" hardcoded
@@ -149,7 +150,7 @@ public class AstraUDAFBitset implements GenericUDAFResolver2 {
                         if (vTimestamp != null) {
                             value = vTimestamp.toString();
                         }
-                        break;
+                        break;*/
                     case CHAR:
                         value = ((HiveCharObjectInspector)this.inputOI).getPrimitiveJavaObject(parameters[0]).getStrippedValue();
                         break;
